@@ -103,18 +103,18 @@ export const stockBalances: StockBalance[] = products.map((p) => ({
 }));
 
 export const invoices: Invoice[] = [
-  { id: "NF-001", supplierClient: "Têxtil Brasil Ltda", type: "Entrada", value: 15200.0, date: "2026-03-27", status: "Pago" },
-  { id: "NF-002", supplierClient: "Espumas Confort SA", type: "Entrada", value: 8750.0, date: "2026-03-25", status: "Pendente" },
-  { id: "NF-003", supplierClient: "Loja Casa & Estilo", type: "Saída", value: 32400.0, date: "2026-03-24", status: "Pago" },
-  { id: "NF-004", supplierClient: "Madeireira São Paulo", type: "Entrada", value: 6300.0, date: "2026-03-23", status: "Pago" },
-  { id: "NF-005", supplierClient: "Atacadão Móveis", type: "Saída", value: 28900.0, date: "2026-03-22", status: "Pendente" },
-  { id: "NF-006", supplierClient: "Ferragens Industrial", type: "Entrada", value: 4200.0, date: "2026-03-21", status: "Cancelado" },
-  { id: "NF-007", supplierClient: "Rede Decor", type: "Saída", value: 18500.0, date: "2026-03-20", status: "Pago" },
-  { id: "NF-008", supplierClient: "Tecidos Premium", type: "Entrada", value: 11800.0, date: "2026-03-19", status: "Pago" },
-  { id: "NF-009", supplierClient: "Magazine Lar", type: "Saída", value: 22100.0, date: "2026-03-18", status: "Pago" },
-  { id: "NF-010", supplierClient: "Espumas Norte", type: "Entrada", value: 5600.0, date: "2026-03-17", status: "Pendente" },
-  { id: "NF-011", supplierClient: "Construtora Alfa", type: "Saída", value: 41200.0, date: "2026-03-16", status: "Pago" },
-  { id: "NF-012", supplierClient: "MadeiraBom", type: "Entrada", value: 7800.0, date: "2026-03-15", status: "Pago" },
+  { id: "NF-001", supplierClient: "Têxtil Brasil Ltda", type: "Entrada", value: 15200.0, date: "2026-03-27", dueDate: "2026-04-10", status: "Pago" },
+  { id: "NF-002", supplierClient: "Espumas Confort SA", type: "Entrada", value: 8750.0, date: "2026-03-25", dueDate: "2026-04-05", status: "Pendente" },
+  { id: "NF-003", supplierClient: "Loja Casa & Estilo", type: "Saída", value: 32400.0, date: "2026-03-24", dueDate: "2026-04-08", status: "Pago" },
+  { id: "NF-004", supplierClient: "Madeireira São Paulo", type: "Entrada", value: 6300.0, date: "2026-03-23", dueDate: "2026-04-15", status: "Pago" },
+  { id: "NF-005", supplierClient: "Atacadão Móveis", type: "Saída", value: 28900.0, date: "2026-03-22", dueDate: "2026-04-03", status: "Pendente" },
+  { id: "NF-006", supplierClient: "Ferragens Industrial", type: "Entrada", value: 4200.0, date: "2026-03-21", dueDate: "2026-04-20", status: "Cancelado" },
+  { id: "NF-007", supplierClient: "Rede Decor", type: "Saída", value: 18500.0, date: "2026-03-20", dueDate: "2026-04-12", status: "Pago" },
+  { id: "NF-008", supplierClient: "Tecidos Premium", type: "Entrada", value: 11800.0, date: "2026-03-19", dueDate: "2026-04-02", status: "Pago" },
+  { id: "NF-009", supplierClient: "Magazine Lar", type: "Saída", value: 22100.0, date: "2026-03-18", dueDate: "2026-04-18", status: "Pago" },
+  { id: "NF-010", supplierClient: "Espumas Norte", type: "Entrada", value: 5600.0, date: "2026-03-17", dueDate: "2026-04-04", status: "Pendente" },
+  { id: "NF-011", supplierClient: "Construtora Alfa", type: "Saída", value: 41200.0, date: "2026-03-16", dueDate: "2026-04-25", status: "Pago" },
+  { id: "NF-012", supplierClient: "MadeiraBom", type: "Entrada", value: 7800.0, date: "2026-03-15", dueDate: "2026-04-06", status: "Pago" },
 ];
 
 export const alerts: Alert[] = [
