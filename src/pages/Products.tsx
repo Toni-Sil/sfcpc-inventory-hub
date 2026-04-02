@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,37 +8,50 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2 } from "lucide-react";
-import { products, type Product } from "@/data/mock-data";
 import { useToast } from "@/hooks/use-toast";
+import { useProducts, useCreateProduct, useDeleteProduct } from "@/hooks/use-api";
+import type { ProductSchema } from "@/lib/api";
 
-const statusBadge = (status: string) => {
+const statusBadge = (status?: string) => {
   const map: Record<string, string> = {
     Normal: "bg-success/10 text-success border-success/20",
     Baixo: "bg-warning/10 text-warning border-warning/20",
     Crítico: "bg-destructive/10 text-destructive border-destructive/20",
   };
-  return map[status] || "";
+  return map[status ?? ""] ?? "";
 };
 
 const categories = ["Tecidos", "Espumas", "Madeiras", "Ferragens"] as const;
 const units = ["metro", "peça", "kg"] as const;
 const statuses = ["Normal", "Baixo", "Crítico"] as const;
 
+const emptyForm = {
+  code: "", description: "", category: "Tecidos", unit: "metro",
+  tonalidade: "", densidade: "", metragem: "", corredor: "", prateleira: "",
+  validity: "", batch: "",
+};
+
 export default function Products() {
   const { toast } = useToast();
-  const [data, setData] = useState<Product[]>(products);
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [page, setPage] = useState(0);
+  const pageSize = 10;
+
+  const { data: rawProducts = [], isLoading, isError } = useProducts(200, 0);
+  const createProduct = useCreateProduct();
+  const deleteProduct = useDeleteProduct();
+
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [form, setForm] = useState({ code: "", description: "", category: "Tecidos", unit: "metro", tonalidade: "", densidade: "", metragem: "", corredor: "", prateleira: "", validity: "", batch: "" });
+  const [form, setForm] = useState({ ...emptyForm });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const filtered = data.filter(
-    (p) => (categoryFilter === "all" || p.category === categoryFilter) && (statusFilter === "all" || p.status === statusFilter)
+  // Client-side filter on already fetched data
+  const filtered = rawProducts.filter(
+    (p) =>
+      (categoryFilter === "all" || p.category === categoryFilter) &&
+      (statusFilter === "all" || p.status === statusFilter)
   );
-  const pageSize = 10;
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paged = filtered.slice(page * pageSize, (page + 1) * pageSize);
 
@@ -53,35 +66,37 @@ export default function Products() {
   };
 
   const openAdd = () => {
-    setEditingProduct(null);
-    setForm({ code: "", description: "", category: "Tecidos", unit: "metro", tonalidade: "", densidade: "", metragem: "", corredor: "", prateleira: "", validity: "", batch: "" });
+    setForm({ ...emptyForm });
     setErrors({});
     setDialogOpen(true);
   };
 
-  const openEdit = (p: Product) => {
-    setEditingProduct(p);
-    setForm({ code: p.code, description: p.description, category: p.category, unit: p.unit, tonalidade: p.tonalidade || "", densidade: p.densidade || "", metragem: p.metragem || "", corredor: p.corredor, prateleira: p.prateleira, validity: p.validity || "", batch: p.batch || "" });
-    setErrors({});
-    setDialogOpen(true);
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validate()) return;
-    if (editingProduct) {
-      setData((prev) => prev.map((p) => (p.id === editingProduct.id ? { ...p, ...form, category: form.category as Product["category"], unit: form.unit as Product["unit"] } : p)));
-      toast({ title: "Produto atualizado com sucesso!" });
-    } else {
-      const newProduct: Product = { id: String(Date.now()), ...form, category: form.category as Product["category"], unit: form.unit as Product["unit"], currentStock: 0, minStock: 10, status: "Normal" };
-      setData((prev) => [...prev, newProduct]);
+    try {
+      await createProduct.mutateAsync(form as ProductSchema);
       toast({ title: "Produto cadastrado com sucesso!" });
+      setDialogOpen(false);
+    } catch (err) {
+      toast({
+        title: "Erro ao cadastrar produto",
+        description: err instanceof Error ? err.message : "Tente novamente",
+        variant: "destructive",
+      });
     }
-    setDialogOpen(false);
   };
 
-  const handleDelete = (id: string) => {
-    setData((prev) => prev.filter((p) => p.id !== id));
-    toast({ title: "Produto excluído com sucesso!", variant: "destructive" });
+  const handleDelete = async (code: string) => {
+    try {
+      await deleteProduct.mutateAsync(code);
+      toast({ title: "Produto excluído com sucesso!", variant: "destructive" });
+    } catch (err) {
+      toast({
+        title: "Erro ao excluir produto",
+        description: err instanceof Error ? err.message : "Tente novamente",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -93,7 +108,7 @@ export default function Products() {
             <Button onClick={openAdd}><Plus className="mr-2 h-4 w-4" />Adicionar Produto</Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-            <DialogHeader><DialogTitle>{editingProduct ? "Editar Produto" : "Novo Produto"}</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>Novo Produto</DialogTitle></DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div><Label>Código *</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />{errors.code && <p className="text-xs text-destructive mt-1">{errors.code}</p>}</div>
@@ -117,10 +132,16 @@ export default function Products() {
                 <div><Label>Lote</Label><Input value={form.batch} onChange={(e) => setForm({ ...form, batch: e.target.value })} /></div>
               </div>
             </div>
-            <DialogFooter><Button onClick={handleSave}>{editingProduct ? "Salvar" : "Cadastrar"}</Button></DialogFooter>
+            <DialogFooter><Button onClick={handleSave} disabled={createProduct.isPending}>{createProduct.isPending ? "Salvando..." : "Cadastrar"}</Button></DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
+
+      {isError && (
+        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-4 text-destructive text-sm">
+          Erro ao carregar produtos. Verifique a conexão com o backend.
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -130,45 +151,61 @@ export default function Products() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Descrição</TableHead>
-                <TableHead>Categoria</TableHead>
-                <TableHead>Unidade</TableHead>
-                <TableHead>Localização</TableHead>
-                <TableHead>Estoque</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paged.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell className="font-mono text-sm">{p.code}</TableCell>
-                  <TableCell>{p.description}</TableCell>
-                  <TableCell>{p.category}</TableCell>
-                  <TableCell>{p.unit}</TableCell>
-                  <TableCell>{p.corredor}-{p.prateleira}</TableCell>
-                  <TableCell>{p.currentStock}</TableCell>
-                  <TableCell><Badge variant="outline" className={statusBadge(p.status)}>{p.status}</Badge></TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(p.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
+          {isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="h-10 rounded bg-muted animate-pulse" />
               ))}
-            </TableBody>
-          </Table>
-          {totalPages > 1 && (
-            <div className="flex items-center justify-end gap-2 pt-4">
-              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Anterior</Button>
-              <span className="text-sm text-muted-foreground">Página {page + 1} de {totalPages}</span>
-              <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Próxima</Button>
             </div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Código</TableHead>
+                    <TableHead>Descrição</TableHead>
+                    <TableHead>Categoria</TableHead>
+                    <TableHead>Unidade</TableHead>
+                    <TableHead>Localização</TableHead>
+                    <TableHead>Estoque</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Ações</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paged.map((p) => (
+                    <TableRow key={p.code}>
+                      <TableCell className="font-mono text-sm">{p.code}</TableCell>
+                      <TableCell>{p.description}</TableCell>
+                      <TableCell>{p.category}</TableCell>
+                      <TableCell>{p.unit}</TableCell>
+                      <TableCell>{p.corredor}-{p.prateleira}</TableCell>
+                      <TableCell>{p.current_stock ?? 0}</TableCell>
+                      <TableCell><Badge variant="outline" className={statusBadge(p.status)}>{p.status ?? "Normal"}</Badge></TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => handleDelete(p.code)} disabled={deleteProduct.isPending}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {paged.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
+                        Nenhum produto encontrado.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-end gap-2 pt-4">
+                  <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Anterior</Button>
+                  <span className="text-sm text-muted-foreground">Página {page + 1} de {totalPages}</span>
+                  <Button variant="outline" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Próxima</Button>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
