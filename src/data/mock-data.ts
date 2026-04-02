@@ -48,6 +48,7 @@ export type Invoice = {
   type: "Entrada" | "Saída";
   value: number;
   date: string;
+  dueDate: string;
   status: "Pago" | "Pendente" | "Cancelado";
 };
 
