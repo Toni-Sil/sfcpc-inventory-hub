@@ -103,11 +103,13 @@ export default function Movements() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Movimentações</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { setForm({ productId: "", type: "Entrada", quantity: "", batch: "", locationOrigin: "", locationDestiny: "", notes: "", operator: "" }); setErrors({}); }}>
-              <Plus className="mr-2 h-4 w-4" />Registrar Movimentação
-            </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <AIMovementInput onDataExtracted={handleAIData} />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setForm({ productId: "", type: "Entrada", quantity: "", batch: "", locationOrigin: "", locationDestiny: "", notes: "", operator: "" }); setErrors({}); }}>
+                <Plus className="mr-2 h-4 w-4" />Registrar Movimentação
+              </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Nova Movimentação</DialogTitle></DialogHeader>
