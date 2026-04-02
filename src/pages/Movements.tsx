@@ -37,6 +37,27 @@ export default function Movements() {
   const [form, setForm] = useState({ productId: "", type: "Entrada", quantity: "", batch: "", locationOrigin: "", locationDestiny: "", notes: "", operator: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const handleAIData = (data: any) => {
+    const product = products.find(
+      (p) =>
+        p.description.toLowerCase().includes((data.productName || "").toLowerCase()) ||
+        p.code.toLowerCase() === (data.productName || "").toLowerCase()
+    );
+    setForm({
+      productId: product?.id || "",
+      type: data.type || "Entrada",
+      quantity: data.quantity ? String(data.quantity) : "",
+      batch: data.batch || "",
+      locationOrigin: data.locationOrigin || "",
+      locationDestiny: data.locationDestiny || "",
+      notes: data.notes || "",
+      operator: data.operator || "",
+    });
+    setErrors({});
+    setDialogOpen(true);
+    toast({ title: "Dados extraídos pela IA", description: product ? `Produto: ${product.description}` : "Revise os campos antes de registrar." });
+  };
+
   const filtered = data.filter((m) => {
     if (typeFilter !== "all" && m.type !== typeFilter) return false;
     if (dateFrom && m.date < dateFrom) return false;
