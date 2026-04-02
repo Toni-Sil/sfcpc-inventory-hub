@@ -12,6 +12,7 @@ import { Plus } from "lucide-react";
 import { movements, products, type Movement } from "@/data/mock-data";
 import { formatDate } from "@/lib/format";
 import { useToast } from "@/hooks/use-toast";
+import { AIMovementInput } from "@/components/AIMovementInput";
 
 const movementTypes = ["Entrada", "Saída", "Transferência", "Ajuste"] as const;
 
@@ -35,6 +36,27 @@ export default function Movements() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState({ productId: "", type: "Entrada", quantity: "", batch: "", locationOrigin: "", locationDestiny: "", notes: "", operator: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleAIData = (data: any) => {
+    const product = products.find(
+      (p) =>
+        p.description.toLowerCase().includes((data.productName || "").toLowerCase()) ||
+        p.code.toLowerCase() === (data.productName || "").toLowerCase()
+    );
+    setForm({
+      productId: product?.id || "",
+      type: data.type || "Entrada",
+      quantity: data.quantity ? String(data.quantity) : "",
+      batch: data.batch || "",
+      locationOrigin: data.locationOrigin || "",
+      locationDestiny: data.locationDestiny || "",
+      notes: data.notes || "",
+      operator: data.operator || "",
+    });
+    setErrors({});
+    setDialogOpen(true);
+    toast({ title: "Dados extraídos pela IA", description: product ? `Produto: ${product.description}` : "Revise os campos antes de registrar." });
+  };
 
   const filtered = data.filter((m) => {
     if (typeFilter !== "all" && m.type !== typeFilter) return false;
@@ -81,11 +103,13 @@ export default function Movements() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">Movimentações</h1>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => { setForm({ productId: "", type: "Entrada", quantity: "", batch: "", locationOrigin: "", locationDestiny: "", notes: "", operator: "" }); setErrors({}); }}>
-              <Plus className="mr-2 h-4 w-4" />Registrar Movimentação
-            </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <AIMovementInput onDataExtracted={handleAIData} />
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => { setForm({ productId: "", type: "Entrada", quantity: "", batch: "", locationOrigin: "", locationDestiny: "", notes: "", operator: "" }); setErrors({}); }}>
+                <Plus className="mr-2 h-4 w-4" />Registrar Movimentação
+              </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader><DialogTitle>Nova Movimentação</DialogTitle></DialogHeader>
@@ -114,6 +138,7 @@ export default function Movements() {
             <DialogFooter><Button onClick={handleSave}>Registrar</Button></DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
