@@ -12,6 +12,7 @@ import { Plus } from "lucide-react";
 import { movements, products, type Movement } from "@/data/mock-data";
 import { formatDate } from "@/lib/format";
 import { useToast } from "@/hooks/use-toast";
+import { AIMovementInput } from "@/components/AIMovementInput";
 
 const movementTypes = ["Entrada", "Saída", "Transferência", "Ajuste"] as const;
 
