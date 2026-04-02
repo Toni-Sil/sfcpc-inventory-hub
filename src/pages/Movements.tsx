@@ -138,6 +138,7 @@ export default function Movements() {
             <DialogFooter><Button onClick={handleSave}>Registrar</Button></DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>
